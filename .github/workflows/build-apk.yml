@@ -33,10 +33,22 @@ jobs:
       - name: Unpack Sena Reply source
         run: unzip -q -o SenaReplyAndroid-v1.1.0-source.zip
 
+      - name: Apply build compatibility patch
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          p = Path('SenaReplyAndroid-v1.1.0/app/src/main/res/values/strings.xml')
+          s = p.read_text(encoding='utf-8')
+          s = s.replace("Android's", r"Android\'s")
+          p.write_text(s, encoding='utf-8')
+          PY
+
       - name: Build APK and capture log
         id: build
         shell: bash
         run: |
+          rm -rf build-output
           mkdir -p build-output
           set +e
           (cd SenaReplyAndroid-v1.1.0 && gradle assembleDebug --stacktrace) > build-output/build.log 2>&1
