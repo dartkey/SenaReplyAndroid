@@ -56,9 +56,9 @@ jobs:
           echo "exit_code=$code" >> "$GITHUB_OUTPUT"
           if [ "$code" -eq 0 ] && [ -f SenaReplyAndroid-v1.1.0/app/build/outputs/apk/debug/app-debug.apk ]; then
             cp SenaReplyAndroid-v1.1.0/app/build/outputs/apk/debug/app-debug.apk build-output/SenaReply-v1.1.0-debug.apk
-            printf 'SUCCESS\nBuilt from commit: %s\n' "$GITHUB_SHA" > build-output/build-status.txt
+            printf 'SUCCESS\nBuilt from commit: %s\nRun ID: %s\n' "$GITHUB_SHA" "$GITHUB_RUN_ID" > build-output/build-status.txt
           else
-            printf 'FAILED\nExit code: %s\nBuilt from commit: %s\n' "$code" "$GITHUB_SHA" > build-output/build-status.txt
+            printf 'FAILED\nExit code: %s\nBuilt from commit: %s\nRun ID: %s\n' "$code" "$GITHUB_SHA" "$GITHUB_RUN_ID" > build-output/build-status.txt
           fi
           exit 0
 
