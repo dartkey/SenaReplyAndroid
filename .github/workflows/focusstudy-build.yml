@@ -20,6 +20,7 @@ jobs:
 
       - name: Rebuild FocusStudy source archive
         run: |
+          sha256sum focusstudy-source/part*.b64
           cat focusstudy-source/part*.b64 > FocusStudyApp-source.b64
           printf '447c72eea1d6a4970ad7629f248f1dcacc030b28474bf110e9877a1a86156575  FocusStudyApp-source.b64\n' | sha256sum -c -
           base64 --decode FocusStudyApp-source.b64 > FocusStudyApp-source.zip
