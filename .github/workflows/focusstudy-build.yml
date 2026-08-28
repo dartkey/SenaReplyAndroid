@@ -5,6 +5,7 @@ on:
     branches: ["focus-study-v1"]
     paths:
       - "focusstudy-source/**"
+      - "focusstudy-overrides/**"
       - ".github/workflows/focusstudy-build.yml"
   workflow_dispatch:
 
@@ -20,13 +21,14 @@ jobs:
 
       - name: Rebuild FocusStudy source archive
         run: |
-          sha256sum focusstudy-source/part*.b64
           cat focusstudy-source/part*.b64 > FocusStudyApp-source.b64
           printf '447c72eea1d6a4970ad7629f248f1dcacc030b28474bf110e9877a1a86156575  FocusStudyApp-source.b64\n' | sha256sum -c -
           base64 --decode FocusStudyApp-source.b64 > FocusStudyApp-source.zip
           printf '25f67ff33931d588dff52ff25a2d12ab2fc9143668b452b019cf32bbee7122c6  FocusStudyApp-source.zip\n' | sha256sum -c -
           rm -rf FocusStudyApp
           unzip -q FocusStudyApp-source.zip
+          cp focusstudy-overrides/app.build.gradle.kts FocusStudyApp/app/build.gradle.kts
+          if [ -d focusstudy-overrides/java ]; then cp -R focusstudy-overrides/java/. FocusStudyApp/app/src/main/java/; fi
 
       - name: Set up JDK 17
         uses: actions/setup-java@v4
@@ -38,7 +40,7 @@ jobs:
         uses: android-actions/setup-android@v3
 
       - name: Install Android 35 SDK
-        run: yes | sdkmanager "platforms;android-35" "build-tools;35.0.0"
+        run: sdkmanager "platforms;android-35" "build-tools;35.0.0"
 
       - name: Set up Gradle
         uses: gradle/actions/setup-gradle@v4
