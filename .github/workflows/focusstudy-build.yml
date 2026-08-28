@@ -1,0 +1,65 @@
+name: Build FocusStudy APK
+
+on:
+  push:
+    branches: ["focus-study-v1"]
+    paths:
+      - "focusstudy-source/**"
+      - ".github/workflows/focusstudy-build.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Rebuild FocusStudy source archive
+        run: |
+          cat focusstudy-source/part*.b64 > FocusStudyApp-source.b64
+          printf '447c72eea1d6a4970ad7629f248f1dcacc030b28474bf110e9877a1a86156575  FocusStudyApp-source.b64\n' | sha256sum -c -
+          base64 --decode FocusStudyApp-source.b64 > FocusStudyApp-source.zip
+          printf '25f67ff33931d588dff52ff25a2d12ab2fc9143668b452b019cf32bbee7122c6  FocusStudyApp-source.zip\n' | sha256sum -c -
+          rm -rf FocusStudyApp
+          unzip -q FocusStudyApp-source.zip
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Install Android 35 SDK
+        run: yes | sdkmanager "platforms;android-35" "build-tools;35.0.0"
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: "8.7"
+
+      - name: Build debug APK
+        working-directory: FocusStudyApp
+        run: gradle :app:assembleDebug --stacktrace
+
+      - name: Publish APK to branch
+        run: |
+          mkdir -p FocusStudyApp/dist
+          cp FocusStudyApp/app/build/outputs/apk/debug/app-debug.apk FocusStudyApp/dist/FocusStudy-v0.1.0-debug.apk
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -f FocusStudyApp/dist/FocusStudy-v0.1.0-debug.apk
+          git commit -m "build: FocusStudy v0.1.0 test APK" || exit 0
+          git push origin HEAD:focus-study-v1
+
+      - name: Upload APK artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: FocusStudy-v0.1.0-debug
+          path: FocusStudyApp/app/build/outputs/apk/debug/app-debug.apk
